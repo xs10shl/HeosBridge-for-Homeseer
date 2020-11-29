@@ -1,4 +1,5 @@
 ﻿Public Const HeosINIFile As String = "HeosBridge.ini"
+Dim menuHEOSSOURCES As String = "Heos Sid"
 Public Const HeosImageDir As String = "\Images\HeosBridge\"
 Public Const HeosImage As String = "Heos.png"
 
@@ -235,6 +236,50 @@ Public Sub Main(ByVal Parms As Object)
             Pair.Status = ""
             Pair.Value = -1
             hs.DeviceVSP_AddPair(dv.Ref(hs), Pair)
+
+            ' Souce needs 17 values, and 17 images
+            If HeosDv = "Source" Then
+                For src As Integer = 0 To 17
+                    'Value
+                    Pair = New VSPair(HomeSeerAPI.ePairStatusControl.Status)
+                    Pair.PairType = VSVGPairType.SingleValue
+                    Pair.Value = src
+                    Pair.Status = HS.getINISetting(menuHEOSSOURCES, src.ToString(), "Source " & src.ToString(), HeosINIFile)
+                    hs.DeviceVSP_AddPair(dv.Ref(hs), Pair)
+                    'image
+                    GPair = New VGPair
+                    GPair.PairType = VSVGPairType.SingleValue
+                    GPair.set_value = src
+                    GPair.Graphic = ImageDir & "source" & src.ToString() & ".png"
+                    hs.DeviceVGP_AddPair(dv.Ref(hs), GPair)
+                Next
+                ' Heos-specific sources
+                For src As Integer = 1024 To 1028
+                    'Value
+                    Pair = New VSPair(HomeSeerAPI.ePairStatusControl.Status)
+                    Pair.PairType = VSVGPairType.SingleValue
+                    Pair.Value = src
+                    Pair.Status = HS.getINISetting(menuHEOSSOURCES, src.ToString(), "Source " & src.ToString(), HeosINIFile)
+                    hs.DeviceVSP_AddPair(dv.Ref(hs), Pair)
+                    'image
+                    GPair = New VGPair
+                    GPair.PairType = VSVGPairType.SingleValue
+                    GPair.set_value = src
+                    GPair.Graphic = ImageDir & "heos.png" ' could make separate png, depending on selection
+                    hs.DeviceVGP_AddPair(dv.Ref(hs), GPair)
+                Next
+            End If
+            ' Station needs an "add/Remove Heos Favorite button
+            If HeosDv = "Station" Then
+                hs.DeviceScriptButton_AddButton(dv.ref(hs), "Add As Fav", 1, HeosControlScript, "ControlsStatusCmd", "AddFav", 1, 1, 1)
+                hs.DeviceScriptButton_AddButton(dv.ref(hs), "Remove Fav", 2, HeosControlScript, "ControlsStatusCmd", "RemoveFav", 1, 2, 1)
+            End If
+
+            ' Title needs thumbs Up/Down button
+            If HeosDv = "Title" Then
+                hs.DeviceScriptButton_AddButton(dv.ref(hs), "Thumbs Up", 1, HeosControlScript, "ControlsStatusCmd", "ThumbsUp", 1, 1, 1)
+                hs.DeviceScriptButton_AddButton(dv.ref(hs), "Thumbs Dn", 2, HeosControlScript, "ControlsStatusCmd", "ThumbsDown", 1, 2, 1)
+            End If
 
             ' Duration and Position also need a zero value
             '----------------------------------------------

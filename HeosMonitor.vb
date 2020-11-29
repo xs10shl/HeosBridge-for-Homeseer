@@ -4,7 +4,7 @@ Imports System.Text
 Imports System.Collections.Generic
 
 Dim HeosINIFile As String = "HeosBridge.ini"
-Dim menuHEOSSOURCES As String = "Heos Sources"
+Dim menuHEOSSOURCES As String = "Heos Sid"
 Dim HeosControlPort As String = "ControlPort"
 Dim HeosMonitorPort As String = "HeosPort"
 Dim HeosTag As String = "Heos"
@@ -204,14 +204,15 @@ Sub Main(parms As Object)
                                     hs.SetDeviceValueByRef(hs.deviceExistsAddress(HeosAddressVolume, True), HeosHeader("level"), True)
                                 End If
                                 ' Treat volume change as a command to change current zone
+                                ' Implementation-specific to me
                                 '--------------------------------------------------
-                                'If HeosHeader("level") <> hs.GetVar("DefaultVolume") Then
-                                ' hs.runscriptfunc("sendNuVoZoneVolume.vb", "Main", "Heos", False, True)
-                                ' hs.waitsecs(0.1)
-                                ' HeosDenonCommandString = "heos://player/set_volume?pid=" & HeosPlayerID & "&level=" & hs.getVar("DefaultVolume") & vbCRLF
-                                ' Bytes = Encoding.UTF8.GetBytes(HeosDenonCommandString)
-                                ' TelnetOutputStream.Write(Bytes, Net.Sockets.Socketflags.None, Bytes.Length)
-                                'End If
+                                If HeosHeader("level") <> hs.GetVar("DefaultVolume") Then
+                                    hs.runscriptfunc("sendNuVoZoneVolume.vb", "Main", "Heos", False, True)
+                                    hs.waitsecs(0.1)
+                                    HeosDenonCommandString = "heos://player/set_volume?pid=" & HeosPlayerID & "&level=" & hs.getVar("DefaultVolume") & vbCRLF
+                                    Bytes = Encoding.UTF8.GetBytes(HeosDenonCommandString)
+                                    TelnetOutputStream.Write(Bytes, Net.Sockets.Socketflags.None, Bytes.Length)
+                                End If
                             Case "player/get_volume", "player/set_volume"
                                 If debug Then hs.writelog(type, "Volume: " & HeosHeader("level"))
                                 hs.SetDeviceValueByRef(hs.deviceExistsAddress(HeosAddressVolume, True), HeosHeader("level"), True)
@@ -225,7 +226,7 @@ Sub Main(parms As Object)
                                 Dim cnt As Integer = jsonParse(HeosData, HeosPayload)
                                 If cnt = 0 Then Continue For
                                 If debug Then hs.Writelog(type, "sid: " & HeosPayload("sid") & "Artist: " & HeosPayload("artist") & " Song: " & HeosPayload("song") & " Image: " & HeosPayload("image_url") & " Album: " & HeosPayload("album"))
-                                hs.SetDeviceString(hs.deviceExistsAddress(HeosAddressSource, True), hs.getINISetting(menuHEOSSOURCES, HeosPayload("sid"), "Heos Src " & HeosPayload("sid"), HeosINIFile), True)
+                                hs.SetDeviceValueByRef(hs.deviceExistsAddress(HeosAddressSource, True), CInt(HeosPayload("sid")), True)
                                 hs.SetDeviceString(hs.deviceExistsAddress(HeosAddressStation, True), HeosPayload("station"), True)
                                 hs.SetDeviceString(hs.deviceExistsAddress(HeosAddressAlbum, True), HeosPayload("album"), True)
                                 hs.SetDeviceString(hs.deviceExistsAddress(HeosAddressTitle, True), HeosPayload("song"), True)
@@ -247,7 +248,7 @@ Sub Main(parms As Object)
                             ' Place whatever code here to facilitate a metadata update
                             ' example: hs.runscriptfunc("UpdateHomeMonitor.vb", "Main", "UPDATE", False, False)
                             '----------------------------------------------------------------------------------
-                            'hs.runscriptfunc("sendMetaData.vb", "Main", "Heos", False, False)
+                           ' hs.runscriptfunc("sendMetaData.vb", "Main", "Heos", False, False)
                         End If
                     Next
                 Loop
@@ -259,7 +260,7 @@ Sub Main(parms As Object)
         TelnetRecvClient.Close()
         hs.waitsecs(0.02)
         hs.SetDeviceValueByRef(dvRootRef, valOFF, False)
-        hs.SetDeviceString(hs.deviceExistsAddress(HeosAddressSource, True), "", True)
+        hs.SetDeviceValueByRef(hs.deviceExistsAddress(HeosAddressSource, True), valOFF, True)
         hs.SetDeviceString(hs.deviceExistsAddress(HeosAddressStation, True), "", True)
         hs.SetDeviceString(hs.deviceExistsAddress(HeosAddressAlbum, True), "", True)
         hs.SetDeviceString(hs.deviceExistsAddress(HeosAddressTitle, True), "", True)
@@ -273,7 +274,7 @@ Sub Main(parms As Object)
         hs.SetDeviceValueByRef(hs.deviceExistsAddress(HeosAddressVolume, True), 0, True) ' perhaps should be default?
         hs.WriteLog(type, "Heos Monitor Disconnected")
         Hs.waitsecs(0.2)
-        hs.runscriptfunc("sendMetaData.vb", "Main", "Heos", False, False)
+       ' hs.runscriptfunc("sendMetaData.vb", "Main", "Heos", False, False)
     End Using
 
 End Sub

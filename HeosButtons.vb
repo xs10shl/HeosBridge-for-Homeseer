@@ -108,6 +108,12 @@ Sub ControlsStatusCmd(Input As Object)
         End If
     End If
 
+    ' load the sid from the existing source.  Overraide it with the dvRef if the dvRef is 
+    ' between a given range - a bit lazy/naughty, but it allows for scripts to call the function with a
+    ' valid sid.  
+    Dim sid As Integer = hs.DeviceValue(hs.deviceExistsAddress(HeosAddressSource, True))
+    If ((1 <= dvRef) AndAlso (dvRef <= 17)) Or ((1024 <= dvRef) AndAlso (dvRef <= 1028)) Then sid = dvRef 'should also check to see if we are browsing, but my dvRefs are well above 1028
+
     If debug = True Then hs.WriteLog(type, "ControlsStatusCmd - Processing command for Heos: " & DeviceParm)
     ' Any button press is an impled connect request
     '-----------------------------------------------
@@ -144,10 +150,21 @@ Sub ControlsStatusCmd(Input As Object)
         Case "SOURCES"
             HeosCommandString = "heos://browse/get_music_sources"
             WaitForResponse = True
+        Case "SOURCEINFO"
+            HeosCommandString = "heos://browse/get_source_info&sid=" & sid
+            WaitForResponse = True
         Case "BROWSE"
-            HeosCommandString = "heos://browse/browse?sid=" & dvRef & "&cid=" & cid & "&range=" & rangeStart & "," & rangeEnd
+            HeosCommandString = "heos://browse/browse?sid=" & sid & "&cid=" & cid & "&range=" & rangeStart & "," & rangeEnd
             If debug Then Hs.writelog(type, "Sending to Heos: " & HeosCommandString)
             WaitForResponse = True
+        Case "THUMBSUP"
+            HeosCommandString = "heos://browse/set_service_option?sid=" & sid & "&option=11&pid=" & HeosPlayerID
+        Case "THUMBSDOWN"
+            HeosCommandString = "heos://browse/set_service_option?sid=" & sid & "&option=12&pid=" & HeosPlayerID
+        Case "ADDFAV"
+            HeosCommandString = "heos://browse/set_service_option?option=19&pid=" & HeosPlayerID
+        Case "REMOVEFAV"
+            HeosCommandString = "heos://browse/set_service_option?option=20&pid=" & HeosPlayerID
         Case Else
             hs.writelog(type, "Unable to send unknown Heos command: " & DeviceParm)
             Exit Sub
@@ -275,7 +292,7 @@ Function HeosInitialize(ByVal Args As String) As Integer
         Return 0
     End If
     hs.SetDeviceValueByRef(hs.deviceExistsAddress(HeosAddressRoot, True), valOFF, False)
-    hs.SetDeviceString(hs.deviceExistsAddress(HeosAddressSource, True), "", True)
+    hs.SetDeviceValueByRef(hs.deviceExistsAddress(HeosAddressSource, True), valOFF, True)
     hs.SetDeviceString(hs.deviceExistsAddress(HeosAddressStation, True), "", True)
     hs.SetDeviceString(hs.deviceExistsAddress(HeosAddressAlbum, True), "", True)
     hs.SetDeviceString(hs.deviceExistsAddress(HeosAddressTitle, True), "", True)
