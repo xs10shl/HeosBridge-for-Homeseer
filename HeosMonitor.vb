@@ -206,13 +206,13 @@ Sub Main(parms As Object)
                                 ' Treat volume change as a command to change current zone
                                 ' Implementation-specific to me
                                 '--------------------------------------------------
-                                If HeosHeader("level") <> hs.GetVar("DefaultVolume") Then
-                                    hs.runscriptfunc("sendNuVoZoneVolume.vb", "Main", "Heos", False, True)
-                                    hs.waitsecs(0.1)
-                                    HeosDenonCommandString = "heos://player/set_volume?pid=" & HeosPlayerID & "&level=" & hs.getVar("DefaultVolume") & vbCRLF
-                                    Bytes = Encoding.UTF8.GetBytes(HeosDenonCommandString)
-                                    TelnetOutputStream.Write(Bytes, Net.Sockets.Socketflags.None, Bytes.Length)
-                                End If
+                                'If HeosHeader("level") <> hs.GetVar("DefaultVolume") Then
+                                '    hs.runscriptfunc("sendNuVoZoneVolume.vb", "Main", "Heos", False, True)
+                                '    hs.waitsecs(0.1)
+                                '  HeosDenonCommandString = "heos://player/set_volume?pid=" & HeosPlayerID & "&level=" & hs.getVar("DefaultVolume") & vbCRLF
+                                '   Bytes = Encoding.UTF8.GetBytes(HeosDenonCommandString)
+                                '   TelnetOutputStream.Write(Bytes, Net.Sockets.Socketflags.None, Bytes.Length)
+                                'End If
                             Case "player/get_volume", "player/set_volume"
                                 If debug Then hs.writelog(type, "Volume: " & HeosHeader("level"))
                                 hs.SetDeviceValueByRef(hs.deviceExistsAddress(HeosAddressVolume, True), HeosHeader("level"), True)
